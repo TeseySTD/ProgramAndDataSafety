@@ -69,7 +69,7 @@ def main():
         
         plaintext_codes = simple_substitution(plaintext)
         
-        key_input = input("Enter the session key (three numbers from 0 to 31, separated by space): ")
+        key_input = input(F"Enter the session key (three numbers from 0 to {len_of_table - 1}, separated by space): ")
         key = list(map(int, key_input.strip().split()))
         if len(key) != 3:
             print("Error: enter exactly three numbers!")
@@ -86,7 +86,7 @@ def main():
         ciphertext_str = read_text_from_file("ciphertext.txt")
         ciphertext_codes = list(map(int, ciphertext_str.strip().split()))
         
-        key_input = input("Enter the session key (three numbers from 0 to 31, separated by space): ")
+        key_input = input(F"Enter the session key (three numbers from 0 to {len_of_table - 1}, separated by space): ")
         key = list(map(int, key_input.strip().split()))
         if len(key) != 3:
             print("Error: enter exactly three numbers!")
