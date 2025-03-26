@@ -2,22 +2,24 @@ import random
 
 def caesar_cipher(text, shift):
     result = ""
-    for char in text:
-        if char.isalpha():
-            ascii_offset = 65 if char.isupper() else 97
-            result += chr((ord(char) - ascii_offset + shift) % 26 + ascii_offset)
+    ukrainian_alphabet = 'АБВГДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ'
+    for char in text.upper():
+        if char in ukrainian_alphabet:
+            index = ukrainian_alphabet.index(char)
+            new_index = (index + shift) % len(ukrainian_alphabet)
+            result += ukrainian_alphabet[new_index]
         else:
             result += char
     return result
 
 def generate_substitution_table():
-    alphabet = 'АБВГДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ'
+    ukrainian_alphabet = 'АБВГДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ'
     
-    shuffled_alphabet = list(alphabet)
+    shuffled_alphabet = list(ukrainian_alphabet)
     random.shuffle(shuffled_alphabet)
     
     substitution_table = {original: replacement 
-                          for original, replacement in zip(alphabet, shuffled_alphabet)}
+                          for original, replacement in zip(ukrainian_alphabet, shuffled_alphabet)}
     
     return substitution_table
 
@@ -35,7 +37,7 @@ def encrypt_file(input_filename, output_filename, shift):
         with open(input_filename, "r", encoding="utf-8") as infile:
             text = infile.read().upper()
     except FileNotFoundError:
-        print(f"File {input_filename} not found!")
+        print(f"Файл {input_filename} не знайдено!")
         return
 
     # Перший етап - шифрування Цезаря
@@ -50,37 +52,57 @@ def encrypt_file(input_filename, output_filename, shift):
     # Збереження зашифрованого тексту, зсуву і таблиці заміни
     with open(output_filename, "w", encoding="utf-8") as outfile:
         outfile.write(final_encrypted + "\n\n")
-        outfile.write(f"Ceasar shift: {shift}\n\n")
-        outfile.write("Table of replacements:\n")
+        outfile.write(f"Зсув Цезаря: {shift}\n\n")
+        outfile.write("Таблиця замін:\n")
         for original, replacement in substitution_table.items():
             outfile.write(f"{original}: {replacement}\n")
 
-    print(f"Encrypted file saved: {output_filename}")
+    print(f"Зашифрований файл збережено: {output_filename}")
 
+def decrypt_file(input_filename, shift, substitution_table):
+    try:
+        with open(input_filename, "r", encoding="utf-8") as infile:
+            # Припускаємо, що перші рядки - це зашифрований текст
+            lines = infile.readlines()
+            encrypted_text = lines[0].strip()
+    except FileNotFoundError:
+        print(f"Файл {input_filename} не знайдено!")
+        return
 
+    # Створення таблиці зворотної заміни
+    reverse_substitution_table = {v: k for k, v in substitution_table.items()}
+    
+    # Перший крок - проста зворотна заміна
+    caesar_text = simple_substitution_cipher(encrypted_text, reverse_substitution_table)
+    
+    # Другий крок - декодування Цезаря
+    decrypted_text = caesar_cipher(caesar_text, -shift)
+
+    print("Розшифрований текст:")
+    print(decrypted_text)
 
 def main():
-    print("Choose operation:")
-    print("1. Encrypt text from file")
-    print("2. Decrypt text from file")
-    choice = input("Choice (1/2): ")
+    print("Виберіть операцію:")
+    print("1. Зашифрувати текст з файлу")
+    print("2. Розшифрувати текст з файлу")
+    choice = input("Вибір (1/2): ")
 
     if choice == "1":
-        input_filename = input("Enter the name of the input file (e.g. input.txt): ")
-        output_filename = input("Enter the name of the file for the encrypted text (e.g. encrypted.txt): ")
+        input_filename = input("Введіть назву вхідного файлу (наприклад, input.txt): ")
+        output_filename = input("Введіть назву файлу для зашифрованого тексту (наприклад, encrypted.txt): ")
         try:
-            shift = int(input("Enter the shift value: "))
+            shift = int(input("Введіть значення зсуву: "))
         except ValueError:
-            print("Shift must be an integer!")
+            print("Зсув має бути цілим числом!")
             return
         encrypt_file(input_filename, output_filename, shift)
 
     elif choice == "2":
-        input_filename = input("Enter the name of the file with the encrypted text (e.g. encrypted.txt): ")
+        input_filename = input("Введіть назву файлу з зашифрованим текстом (наприклад, encrypted.txt): ")
         try:
-            shift = int(input("Enter the shift value used for encryption: "))
+            shift = int(input("Введіть значення зсуву, використане при шифруванні: "))
             
-            # Read the substitution table
+            # Читання таблиці заміни
             substitution_table = {}
             with open(input_filename, "r", encoding="utf-8") as infile:
                 infile.readline()
@@ -94,13 +116,13 @@ def main():
                         original, replacement = line.strip().split(': ')
                         substitution_table[original] = replacement
         except Exception as e:
-            print(f"Error reading the substitution table: {e}")
+            print(f"Помилка читання таблиці заміни: {e}")
             return
 
         decrypt_file(input_filename, shift, substitution_table)
 
     else:
-        print("Incorrect choice!")
+        print("Невірний вибір!")
 
 if __name__ == '__main__':
     main()
